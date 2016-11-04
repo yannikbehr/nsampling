@@ -1,0 +1,12 @@
+*~
+*.o
+*.so
+*.pyc
+*.cxx
+.cproject
+.project
+.pydevproject
+examples/.ipynb_checkpoints/
+examples/Untitled.ipynb
+examples/ns
+src/sampling.py
