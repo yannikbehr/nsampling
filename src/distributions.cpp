@@ -6,36 +6,30 @@
 std::default_random_engine Uniform::e;
 
 double Uniform::draw(){
-	// If it's the first time this is called chose an arbitrary point
-	if(!initialized){
-		std::uniform_real_distribution<double> uniform_dist(0.0, 1.0);
-		u = uniform_dist(e);
-		initialized = true;
-	}else{
-		// Seed with a real random value, if available
-		std::uniform_real_distribution<double> uniform_dist(-1.0, 1.0);
-		u += _step * uniform_dist(e);
-		u -= floor(u); // wraparound to stay within (0,1)
-	}
+	std::uniform_real_distribution<double> uniform_dist(0.0, 1.0);
+	u = uniform_dist(e);
 	return (xmax-xmin)*u + xmin;
 }
 
-Uniform::Uniform(std::string name, double min, double max, double step){
+double Uniform::draw(double step){
+	std::uniform_real_distribution<double> uniform_dist(-1.0, 1.0);
+	u += step * uniform_dist(e);
+	u -= floor(u); // wraparound to stay within (0,1)
+	return (xmax-xmin)*u + xmin;
+}
+
+Uniform::Uniform(std::string name, double min, double max){
 		inst_name = name;
 		xmin = min;
 		xmax = max;
-		_step = step;
 		u = 0.;
-		initialized = false;
 }
 
 Uniform::Uniform(const Uniform& other){
 	inst_name = other.inst_name;
 	xmin = other.xmin;
 	xmax = other.xmax;
-	_step = other._step;
 	u = other.u;
-	initialized = other.initialized;
 }
 
 Uniform* Uniform::clone(){
@@ -46,18 +40,55 @@ double Uniform::get_value(){
 	return (xmax-xmin)*u + xmin;
 }
 
-double Uniform::get_step(){
-	return _step;
-}
-
-void Uniform::set_step(double new_step){
-	_step = new_step;
-}
-
 void Uniform::set_value(double value){
 	x = value;
 }
 
 std::string Uniform::get_name(){
+	return inst_name;
+}
+
+
+
+
+double CUniform::draw(){
+	u = (rand()+0.5)/(RAND_MAX+1.0);
+	return (xmax-xmin)*u + xmin;
+}
+
+double CUniform::draw(double step){
+	u = (rand()+0.5)/(RAND_MAX+1.0);
+	u += step * (2.*u -1);
+	u -= floor(u); // wraparound to stay within (0,1)
+	return (xmax-xmin)*u + xmin;
+}
+
+CUniform::CUniform(std::string name, double min, double max){
+		inst_name = name;
+		xmin = min;
+		xmax = max;
+		u = 0.;
+}
+
+CUniform::CUniform(const CUniform& other){
+	inst_name = other.inst_name;
+	xmin = other.xmin;
+	xmax = other.xmax;
+	u = other.u;
+}
+
+CUniform* CUniform::clone(){
+	return new CUniform(*this);
+}
+
+double CUniform::get_value(){
+	return (xmax-xmin)*u + xmin;
+}
+
+void CUniform::set_value(double value){
+	x = value;
+}
+
+std::string CUniform::get_name(){
 	return inst_name;
 }

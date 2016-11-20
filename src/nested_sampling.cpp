@@ -2,6 +2,7 @@
 #include <cmath>
 #include <limits>
 #include <random>
+#include <cfloat>
 
 Object::Object(std::vector<Variable*> vars){
 	std::vector<Variable*>::iterator itv;
@@ -55,11 +56,13 @@ std::vector<double> Object::draw(){
 	return vals;
 }
 
-void Object::step_rescale(double factor){
+std::vector<double> Object::draw(double step){
 	std::vector<Variable*>::iterator itv;
+	std::vector<double> vals;
 	for(itv=_vars.begin(); itv !=_vars.end(); itv++){
-		(*itv)->set_step((*itv)->get_step()*factor);
+		vals.push_back((*itv)->draw(step));
 	}
+	return vals;
 }
 
 void Result::summarize(){
@@ -87,7 +90,7 @@ void Result::summarize(){
 }
 
 void NestedSampling::new_sample(Object *Obj, double logLstar){
-	double step;
+	double step=0.1;
 	int m = 20;
 	int accept = 0;
 	int reject = 0;
@@ -96,16 +99,16 @@ void NestedSampling::new_sample(Object *Obj, double logLstar){
 	std::vector<Variable*>::iterator itv;
 
 	for(;m>0;m--){
-		Try.logL = _callback->run(Try.draw());
+		Try.logL = _callback->run(Try.draw(step));
 		if(Try.logL > logLstar){
 			*Obj = Try;
 			accept++;
 		}else
 			reject++;
 		if(accept > reject)
-			Try.step_rescale(exp(1.0/accept));
+			step *= exp(1.0/accept);
 		if(accept < reject)
-			Try.step_rescale(1/exp(1.0/reject));
+			step /=	exp(1.0/reject);
 	}
 }
 
@@ -123,8 +126,9 @@ Result* NestedSampling::explore(std::vector<Variable*> vars,
 
 	std::random_device r;
 	//std::default_random_engine e(r());
-	std::default_random_engine e;
-	std::uniform_int_distribution<int> pick(0,initial_samples-1);
+	//std::default_random_engine e;
+	//std::uniform_int_distribution<int> pick(0,initial_samples-1);
+	CUniform pick("pick",0,1);
 	std::vector<Object*> Samples(maximum_steps);
 	std::vector<Object*> Obj(initial_samples);
 
@@ -156,7 +160,7 @@ Result* NestedSampling::explore(std::vector<Variable*> vars,
 		std::cout <<"*Obj[worst]: " << *Obj[worst] <<std::endl;
 #endif
 		// Kill worst object in favour of copy of different survivor
-		do copy = pick(e); // force 0 <= copy < n
+		do copy = (int)(initial_samples*pick.draw()); // force 0 <= copy < n
 		while(copy == worst && initial_samples > 1); // don't kill if n is only 1
 		logLstar = Obj[worst]->logL; // new Likelihood constraint
 		*Obj[worst] = *Obj[copy]; // overwrite worst object

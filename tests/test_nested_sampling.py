@@ -4,7 +4,7 @@ import unittest
 
 import numpy as np
 
-from sampling import NestedSampling, Uniform, Callback, d_array
+from sampling import NestedSampling, Uniform, CUniform, Callback, d_array
 
 
 class PyCallback(Callback):
@@ -35,8 +35,8 @@ class NestedSamplingTestCase(unittest.TestCase):
         pass
 
     def test_nested_sampling(self):
-        x = Uniform('x', -2., 2., 0.1)
-        y = Uniform('y', 0., 2., 0.1)
+        x = CUniform('x', -2., 2.)
+        y = CUniform('y', 0., 2.)
         D = [4.73, 0.45, -1.73, 1.09, 2.19, 0.12,
              1.31, 1.00, 1.32, 1.07, 0.86, -0.49, -2.59, 1.73, 2.11,
              1.61, 4.98, 1.71, 2.23, -57.20, 0.96, 1.25, -1.56, 2.45,
@@ -54,7 +54,7 @@ class NestedSamplingTestCase(unittest.TestCase):
         pycb = PyCallback(D)
         pycb.__disown__()
         ns.setCallback(pycb)
-        rs = ns.explore(vars=[x, y], initial_samples=20,
+        rs = ns.explore(vars=[x, y], initial_samples=100,
                         maximum_steps=1000)
         rs.summarize()
         # Final maximum should be around x=1.26, y=0.93

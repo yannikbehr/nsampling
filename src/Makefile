@@ -16,4 +16,4 @@ lighthouse: example.cpp nested_sampling.h nested_sampling.cpp
 	g++ -o example -I ./ example.cpp nested_sampling.cpp
 	
 clean:
-	-rm *.o *.so *.cxx
+	-rm *.o *.so *.cxx *.pyc

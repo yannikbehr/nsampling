@@ -26,7 +26,7 @@ public:
 	Object(Object& other);
 	Object& operator=(const Object& other);
 	std::vector<double> draw();
-	void step_rescale(double factor);
+	std::vector<double> draw(double step);
 	friend std::ostream& operator<<(std::ostream& os, const Object& o);
 
 };
@@ -64,28 +64,6 @@ public:
 //#define PI 3.1416
 //
 //#define UNIFORM ((rand() + 0.5)/(RAND_MAX+1.0))
-//
-//
-//
-//class NestedSampling{
-//public:
-//	void new_sample(Object *Obj, double logLstar);
-//
-//	void explore(Object *Obj, int n, Object *Samples,int m);
-//
-//	NestedSampling(){
-//		_H = 0.0;
-//		_logZ =- DBL_MAX;
-//	}
-//
-//	double get_logZ(){
-//		return _logZ;
-//	}
-//
-//private:
-//	double _H;
-//	double _logZ;
-//};
 
 
 #endif
