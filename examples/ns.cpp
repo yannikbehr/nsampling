@@ -30,7 +30,7 @@ int main(){
 	std::vector<Variable*> vars;
 	vars.push_back(new Uniform("x", -2., 2.));
     vars.push_back(new Uniform("y", 0., 2.));
-	NestedSampling ns(vars);
+	NestedSampling ns;
 	ns.setCallback(new LightHouse());
 	Result *rs = ns.explore(vars,100,1000);
 	rs->summarize();
