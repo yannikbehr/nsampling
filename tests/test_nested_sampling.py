@@ -44,11 +44,7 @@ class NestedSamplingTestCase(unittest.TestCase):
              16.19, 2.75, -2.38, -1.79, 6.50, -18.53, 0.72, 0.94, 3.64,
              1.94, -0.11, 1.57, 0.57]
 
-        npts = len(D)
-        d = d_array(npts)
-        for i in xrange(len(D)):
-            d[i] = D[i]
-        ns = NestedSampling(vars=[x, y])
+        ns = NestedSampling()
         pycb = PyCallback(D)
         pycb.__disown__()
         ns.setCallback(pycb)

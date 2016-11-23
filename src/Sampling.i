@@ -9,9 +9,6 @@
 #include "nested_sampling.h"
 %}
 
-%include "carrays.i"
-%array_class(double, d_array);
-
 %feature("director") Callback;
 
 %include "std_vector.i"
@@ -19,6 +16,7 @@
 namespace std {
    %template(IntVector) vector<int>;
    %template(VarVector) vector<Variable*>;
+   %template(OVector) vector<Object*>;
    %template(DVector) vector<double>;
 }
 

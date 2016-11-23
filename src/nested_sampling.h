@@ -53,6 +53,7 @@ public:
 		vals.push_back(std::sqrt(_H/_n));
 		return vals;};
 	double getH(){return _H;};
+	std::vector<Object*> get_samples(){return _samples;};
 
 };
 
@@ -60,14 +61,11 @@ public:
 class NestedSampling{
 private:
         Callback *_callback;
-        std::vector<Variable*> _vars;
 public:
-	NestedSampling(std::vector<Variable*> vars): _callback(0){
-		_vars = vars;
-	}
-	~NestedSampling() { delCallback(); }
-	void delCallback() { delete _callback; _callback = 0; }
-	void setCallback(Callback *cb) { delCallback(); _callback = cb; }
+	NestedSampling(): _callback(0){};
+	~NestedSampling() { delCallback(); };
+	void delCallback() { delete _callback; _callback = 0; };
+	void setCallback(Callback *cb) { delCallback(); _callback = cb; };
 	void new_sample(Object *Obj, double logLstar);
 	Result* explore(std::vector<Variable*> vars, int initial_samples,
 			int maximum_steps);
