@@ -4,11 +4,9 @@
 
 #define PI 3.1416
 
-using namespace std;
-
 class LightHouse: public Callback{
 public:
-	double run(vector<double> vals){
+	double run(std::vector<double> vals){
 		double x = vals[0];
 		double y = vals[1];
 		int N = 64;
@@ -23,18 +21,18 @@ public:
 		int k;
 		double logL = 0;
 		for(k=0; k<N; k++)
-			logL += log((y/PI)/((D[k] - x)*(D[k] - x) + y*y));
+			logL += std::log((y/PI)/((D[k] - x)*(D[k] - x) + y*y));
 		return logL;
 	}
 };
 
 int main(){
-	vector<Variable*> vars;
-	vars.push_back(new Uniform("x", -2., 2.,0.1));
-    vars.push_back(new Uniform("y", 0., 2., 0.1));
+	std::vector<Variable*> vars;
+	vars.push_back(new Uniform("x", -2., 2.));
+    vars.push_back(new Uniform("y", 0., 2.));
 	NestedSampling ns(vars);
 	ns.setCallback(new LightHouse());
-	Result *rs = ns.explore(vars,20,1000);
+	Result *rs = ns.explore(vars,100,1000);
 	rs->summarize();
 	return 0;
 }

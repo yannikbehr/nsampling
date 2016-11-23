@@ -3,7 +3,8 @@
 #include <cmath>
 #include <random>
 
-std::default_random_engine Uniform::e;
+std::random_device Uniform::r;
+std::default_random_engine Uniform::e = std::default_random_engine(Uniform::r());
 
 double Uniform::draw(){
 	std::uniform_real_distribution<double> uniform_dist(0.0, 1.0);
@@ -57,8 +58,7 @@ double CUniform::draw(){
 }
 
 double CUniform::draw(double step){
-	u = (rand()+0.5)/(RAND_MAX+1.0);
-	u += step * (2.*u -1);
+	u += step * (2.*(rand()+0.5)/(RAND_MAX+1.0) -1.);
 	u -= floor(u); // wraparound to stay within (0,1)
 	return (xmax-xmin)*u + xmin;
 }

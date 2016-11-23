@@ -20,6 +20,7 @@ private:
 	double x;
 	double xmin, xmax;
 	std::string inst_name;
+	static std::random_device r;
 	static std::default_random_engine e;
 
 

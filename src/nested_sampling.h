@@ -12,7 +12,7 @@
 
 class Callback {
 public:
-        virtual ~Callback() { std::cout << "Callback::~Callback()" << std:: endl; }
+        virtual ~Callback() {}
         virtual double run(std::vector<double> vals) { std::cout << "Callback::run()" << std::endl; }
 };
 
@@ -35,13 +35,25 @@ public:
 class Result{
 public:
 	std::vector<Object*> _samples;
-	double _logZ;
-	Result(std::vector<Object*> Samples, double LogZ){
-		_samples=Samples;
-		_logZ = LogZ;
-	};
+	double _logZ, _H;
+	int _n, _nvars;
+	std::vector<double> _e, _var, _mx;
+	std::vector<std::string> _vnames;
+
+	Result(std::vector<Object*> Samples, double LogZ, double H, int n);
 	~Result(){};
 	void summarize();
+	std::vector<double> getexpt(){return _e;};
+	std::vector<double> getvar(){return _var;};
+	std::vector<double> getmax(){return _mx;};
+	std::vector<std::string> getnames(){return _vnames;};
+	std::vector<double> getZ(){
+		std::vector<double> vals;
+		vals.push_back(_logZ);
+		vals.push_back(std::sqrt(_H/_n));
+		return vals;};
+	double getH(){return _H;};
+
 };
 
 
@@ -60,10 +72,6 @@ public:
 	Result* explore(std::vector<Variable*> vars, int initial_samples,
 			int maximum_steps);
 };
-
-//#define PI 3.1416
-//
-//#define UNIFORM ((rand() + 0.5)/(RAND_MAX+1.0))
 
 
 #endif

@@ -3,6 +3,9 @@
 #include <limits>
 #include <random>
 #include <cfloat>
+#include <typeinfo>
+#include <string>
+
 
 Object::Object(std::vector<Variable*> vars){
 	std::vector<Variable*>::iterator itv;
@@ -65,29 +68,59 @@ std::vector<double> Object::draw(double step){
 	return vals;
 }
 
-void Result::summarize(){
-	double x = 0.0, xx = 0.0;
-	double y = 0.0, yy = 0.0;
+
+Result::Result(std::vector<Object*> Samples, double LogZ, double H, int n){
+	_samples=Samples;
+	_logZ = LogZ;
+	_H = H;
+	_n = n;
+	_nvars = _samples[0]->_vars.size();
+
+	// Compute 1st and 2nd moment
 	double w;
-	int i;
-	double xmax, ymax, lmax=-std::numeric_limits<double>::max();
-	for(i=0; i<_samples.size(); i++){
-		w = std::exp(_samples[i]->logWt - _logZ);
-		x += w*_samples[i]->_vars[0]->get_value();
-		xx += w*_samples[i]->_vars[0]->get_value()*_samples[i]->_vars[0]->get_value();
-		y += w*_samples[i]->_vars[1]->get_value();
-		yy += w*_samples[i]->_vars[1]->get_value()*_samples[i]->_vars[1]->get_value();
-		if(_samples[i]->logL > lmax){
-			lmax = _samples[i]->logL;
-			xmax = _samples[i]->_vars[0]->get_value();
-			ymax = _samples[i]->_vars[1]->get_value();
-		}
+	bool lmax = false;
+
+	for(int i=0; i<_nvars; i++){
+		_e.push_back(0.0);
+		_var.push_back(0.0);
+		_mx.push_back(0.0);
+		_vnames.push_back(_samples[0]->_vars[i]->get_name());
 	}
-	std::cout << "mean(x) = "<< x << ", stddev(x) = "<< std::sqrt(xx-x*x) << std::endl;
-	std::cout << "mean(y) = "<< y << ", stddev(y) = "<< std::sqrt(yy-y*y) << std::endl;
-	std::cout << "max(x) = "<<xmax<< ", max(y) = "<<ymax<<", max(L) = " << lmax << std::endl;
+	_mx.push_back(-std::numeric_limits<double>::max());
+
+	for(int i=0; i<_samples.size(); i++){
+		w = std::exp(_samples[i]->logWt - _logZ);
+		if(_samples[i]->logL > _mx[_nvars]){
+			lmax = true;
+			_mx[_nvars] = _samples[i]->logL;
+		}
+		for(int j=0; j<_nvars; j++){
+			_e[j] += w*_samples[i]->_vars[j]->get_value();
+			_var[j] += w*_samples[i]->_vars[j]->get_value()*_samples[i]->_vars[j]->get_value();
+			if(lmax)
+				_mx[j] = _samples[i]->_vars[j]->get_value();
+		}
+		lmax = false;
+	}
+	for(int i=0; i<_nvars; i++){
+		_var[i] = _var[i] - _e[i]*_e[i];
+	}
 
 }
+
+void Result::summarize(){
+	std::cout << "Number of iterates: " << _samples.size();
+	std::cout << "; number of initial samples: " << _n << std::endl;
+	std::cout << "Evidence: ln(Z) = " << _logZ << "+-" << std::sqrt(_H/_n) << std::endl;
+	std::cout << "Information: H = " << _H << " nats = " << _H/log(2.) << std::endl;
+	std::cout << "Maximum log-likelihood: "<< _mx[_nvars] << std::endl;
+	for(int j=0; j<_nvars; j++){
+		std::cout << "E(" << _vnames[j] << ") : " << _e[j];
+		std::cout << "; STD(" << _vnames[j] << ") :" << std::sqrt(_var[j]);
+		std::cout << "; MAX(" << _vnames[j] << ") :" << _mx[j] << std::endl;
+	}
+}
+
 
 void NestedSampling::new_sample(Object *Obj, double logLstar){
 	double step=0.1;
@@ -103,8 +136,11 @@ void NestedSampling::new_sample(Object *Obj, double logLstar){
 		if(Try.logL > logLstar){
 			*Obj = Try;
 			accept++;
-		}else
+		}else{
+			// reset to previously accepted sample
+			Try = *Obj;
 			reject++;
+		}
 		if(accept > reject)
 			step *= exp(1.0/accept);
 		if(accept < reject)
@@ -119,16 +155,22 @@ Result* NestedSampling::explore(std::vector<Variable*> vars,
 	int worst;
 	int nest;
 	double logZnew;
-	double _logZ = -std::numeric_limits<double>::max();
-	double _H = 0.0;
+	double logZ = -std::numeric_limits<double>::max();
+	double H = 0.0;
 	double logLstar;
 	double logwidth;
 
-	std::random_device r;
-	//std::default_random_engine e(r());
-	//std::default_random_engine e;
-	//std::uniform_int_distribution<int> pick(0,initial_samples-1);
-	CUniform pick("pick",0,1);
+	// The following code bit facilitates unit testing
+	Variable* pick;
+	Variable* tvar = vars[0];
+	const std::type_info& ti1 = typeid(*tvar);
+	const std::type_info& ti2 = typeid(CUniform);
+	if(ti1.hash_code() == ti2.hash_code()){
+		pick = new CUniform("pick",0,initial_samples);
+	} else {
+		pick = new Uniform("pick",0,initial_samples);
+	}
+
 	std::vector<Object*> Samples(maximum_steps);
 	std::vector<Object*> Obj(initial_samples);
 
@@ -137,6 +179,9 @@ Result* NestedSampling::explore(std::vector<Variable*> vars,
 	for(i=0;i<initial_samples;i++){
 		Obj[i] = new Object(vars);
 		Obj[i]->logL = _callback->run(Obj[i]->draw());
+#ifdef DEBUG
+		std::cout <<"Prior: " << i << " " << *Obj[i] <<std::endl;
+#endif
 	}
 	for(nest=0; nest<maximum_steps; nest++){
 		// Worst object in collection with Weight = width*Likelihood
@@ -148,26 +193,20 @@ Result* NestedSampling::explore(std::vector<Variable*> vars,
 
 		Obj[worst]->logWt = logwidth + Obj[worst]->logL;
 		// Update Evidence Z and Information H
-		logZnew = PLUS(_logZ, Obj[worst]->logWt);
-		_H = exp(Obj[worst]->logWt - logZnew) * Obj[worst]->logL
-				+ exp(_logZ - logZnew) * (_H + _logZ) - logZnew;
-		_logZ = logZnew;
+		logZnew = PLUS(logZ, Obj[worst]->logWt);
+		H = exp(Obj[worst]->logWt - logZnew) * Obj[worst]->logL
+				+ exp(logZ - logZnew) * (H + logZ) - logZnew;
+		logZ = logZnew;
 		// Posterior Samples (optional)
 		Samples[nest] = new Object(*Obj[worst]);
 #ifdef DEBUG
-		std::cout <<"++++++++++++++++++++++++++++++++"<<std::endl;
 		std::cout <<"Samples[nest]: " << *Samples[nest] <<std::endl;
-		std::cout <<"*Obj[worst]: " << *Obj[worst] <<std::endl;
 #endif
 		// Kill worst object in favour of copy of different survivor
-		do copy = (int)(initial_samples*pick.draw()); // force 0 <= copy < n
+		do copy = (int)(pick->draw()); // force 0 <= copy < n
 		while(copy == worst && initial_samples > 1); // don't kill if n is only 1
 		logLstar = Obj[worst]->logL; // new Likelihood constraint
 		*Obj[worst] = *Obj[copy]; // overwrite worst object
-#ifdef DEBUG
-		std::cout <<"*Obj[worst]: " << *Obj[worst] <<std::endl;
-		std::cout <<"*Obj[copy]: " << *Obj[copy] <<std::endl;
-#endif
 
 		// Evolve copied object within constraint
 		new_sample(Obj[worst], logLstar);
@@ -175,7 +214,7 @@ Result* NestedSampling::explore(std::vector<Variable*> vars,
 		logwidth -= 1.0/initial_samples;
 	}
 
-	Result *rs = new Result(Samples,_logZ);
+	Result *rs = new Result(Samples,logZ,H,initial_samples);
 	return rs;
 }
 

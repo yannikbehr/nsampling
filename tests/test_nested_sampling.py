@@ -24,8 +24,6 @@ class PyCallback(Callback):
         for k in range(0, N):
             logL += np.log((y / np.pi) /
                            ((self.data[k] - x) * (self.data[k] - x) + y * y))
-        # print "Python callback with x={}, y={}, and likelihood={}".format(x,
-        # y, logL)
         return logL
 
 
@@ -47,8 +45,8 @@ class NestedSamplingTestCase(unittest.TestCase):
              1.94, -0.11, 1.57, 0.57]
 
         npts = len(D)
-        d = d_array(npts)         # Array of 10-million integers
-        for i in xrange(len(D)):        # Set some values
+        d = d_array(npts)
+        for i in xrange(len(D)):
             d[i] = D[i]
         ns = NestedSampling(vars=[x, y])
         pycb = PyCallback(D)
@@ -56,9 +54,21 @@ class NestedSamplingTestCase(unittest.TestCase):
         ns.setCallback(pycb)
         rs = ns.explore(vars=[x, y], initial_samples=100,
                         maximum_steps=1000)
-        rs.summarize()
-        # Final maximum should be around x=1.26, y=0.93
-        # E[x] = 1.24 Var[x] = 0.18^2; E[y]=1.00 Var[y] = 0.19^2
+        ep = rs.getexpt()
+        ev = rs.getZ()
+        h = rs.getH()
+        var = rs.getvar()
+        m = rs.getmax()
+        self.assertAlmostEqual(ep[0], 1.24208, 5)
+        self.assertAlmostEqual(ep[1], 1.00426, 5)
+        self.assertAlmostEqual(np.sqrt(var[0]), 0.182403, 6)
+        self.assertAlmostEqual(np.sqrt(var[1]), 0.194502, 6)
+        self.assertAlmostEqual(m[0], 1.27219, 5)
+        self.assertAlmostEqual(m[1], 0.915382, 6)
+        self.assertAlmostEqual(m[2], -156.412, 3)
+        self.assertAlmostEqual(ev[0], -160.293, 3)
+        self.assertAlmostEqual(ev[1], 0.163994, 6)
+        self.assertAlmostEqual(h, 2.68939, 5)
 
 
 def suite():
