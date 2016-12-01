@@ -1,4 +1,4 @@
-![](examples/lighthouse_problem.png) 
+![](examples/lighthouse_problem.png)
 # Sampling
 Sampling is a C++ library with a Python interface intended to implement various
 importance sampling algorithms. At the moment it only implements Nested Sampling
@@ -41,3 +41,6 @@ in addition to `jupyter`.
 cd examples
 jupyter notebook&
 ```
+
+#### _References_
+D.S. Sivia with J. Skilling, Data Analysis, 2006, 2nd edition, Oxford University Press
