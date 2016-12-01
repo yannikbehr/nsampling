@@ -4,7 +4,7 @@ import unittest
 
 import numpy as np
 
-from sampling import NestedSampling, Uniform, CUniform, Callback, d_array
+from sampling import NestedSampling, Uniform, CUniform, Callback
 
 
 class PyCallback(Callback):
