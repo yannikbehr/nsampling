@@ -1,5 +1,4 @@
-#include "../src/nested_sampling.h"
-#include "../src/distributions.h"
+#include <nested_sampling.h>
 #include <iostream>
 
 #define PI 3.1416

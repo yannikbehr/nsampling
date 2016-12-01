@@ -1,7 +1,10 @@
-FLAGS=-std=c++11 -g
+CFLAGS=-std=c++11 -g
 
-ns: ns.cpp ../src/nested_sampling.cpp ../src/distributions.cpp
-	g++ ns.cpp -o ns ${FLAGS} -I../src ../src/nested_sampling.cpp ../src/distributions.cpp
+ns: ns.cpp
+	g++ ns.cpp -o ns $(CFLAGS) -l:libsampling.a
+	
+run:
+	./ns
 
 clean:
 	-rm ns

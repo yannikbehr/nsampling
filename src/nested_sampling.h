@@ -14,7 +14,7 @@ public:
         virtual ~Callback() {}
 
         // Evaluate the likelihood function
-        virtual double run(std::vector<double> vals) { std::cout << "Callback::run()" << std::endl; }
+        virtual double run(std::vector<double> vals) { return 0.0; }
 };
 
 
