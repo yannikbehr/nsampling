@@ -9,4 +9,5 @@
 examples/.ipynb_checkpoints/
 examples/Untitled.ipynb
 examples/ns
-src/sampling.py
+python/sampling/sampling.py
+*.swp
