@@ -6,6 +6,10 @@
 std::random_device Uniform::_r;
 std::default_random_engine Uniform::_e = std::default_random_engine(Uniform::_r());
 
+std::random_device Normal::_r;
+std::default_random_engine Normal::_e = std::default_random_engine(Normal::_r());
+
+
 double Uniform::draw(){
 	std::uniform_real_distribution<double> uniform_dist(0.0, 1.0);
 	_u = uniform_dist(_e);
@@ -84,3 +88,58 @@ double CUniform::get_value(){
 std::string CUniform::get_name(){
 	return _inst_name;
 }
+
+
+Normal::Normal(std::string name, double mean, double sigma){
+	_inst_name = name;
+	_mean = mean;
+	_sigma = sigma;
+	_u1 = 0.;
+	_u2 = 0.;
+	_y = 0.;
+	_pi = 4*atan(1);
+}
+
+Normal::Normal(const Normal& other){
+	_inst_name = other._inst_name;
+	_mean = other._mean;
+	_sigma = other._sigma;
+	_u1 = other._u1;
+	_u2 = other._u2;
+	_y = other._y;
+	_pi = 4*atan(1);
+}
+
+Normal* Normal::clone(){
+	return new Normal(*this);
+}
+
+double Normal::draw(){
+	std::uniform_real_distribution<double> uniform_dist(0.0, 1.0);
+	_u1 = uniform_dist(_e);
+	_u2 = uniform_dist(_e);
+	// Box-Muller method
+	_y = sqrt(-2*log(_u1))*cos(2*_pi*_u2);
+	return _sigma*_y+_mean; 
+}
+
+double Normal::draw(double step){
+	std::uniform_real_distribution<double> uniform_dist(-1.0, 1.0);
+	_u1 += step * uniform_dist(_e);
+	_u2 += step * uniform_dist(_e);
+	// wraparound to stay within (0,1)
+	_u1 -= floor(_u1); 
+	_u2 -= floor(_u2);
+	_y = sqrt(-2*log(_u1))*cos(2*_pi*_u2);
+	return _sigma*_y+_mean; 
+}
+
+double Normal::get_value(){
+	return _sigma*_y + _mean;
+}
+
+std::string Normal::get_name(){
+	return _inst_name;
+}
+
+

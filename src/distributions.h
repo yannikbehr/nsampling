@@ -67,4 +67,28 @@ public:
 	CUniform(const CUniform& other);
 	CUniform* clone();
 };
+
+
+/*
+ * Normal (Gaussian) distribution
+ */
+class Normal: public Variable{
+private:
+	double _u1, _u2, _y, _pi;
+	double _mean, _sigma;
+	std::string _inst_name;
+	static std::random_device _r;
+	static std::default_random_engine _e;
+
+
+public:
+	double draw();
+	double draw(double step);
+	double get_value();
+	std::string get_name();
+	Normal(std::string name, double mean, double sigma);
+	Normal(const Normal& other);
+	Normal* clone();
+};
+
 #endif
