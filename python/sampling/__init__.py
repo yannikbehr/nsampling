@@ -1,1 +1,1 @@
-from sampling import NestedSampling, Uniform, Callback
+from sampling.sampling import NestedSampling, Uniform, Normal, Callback, SamplingException

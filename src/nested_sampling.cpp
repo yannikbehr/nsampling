@@ -87,7 +87,7 @@ Result::Result(std::vector<Object*> Samples, double LogZ, double H, int n){
 	}
 	_mx.push_back(-std::numeric_limits<double>::max());
 
-	for(int i=0; i<_samples.size(); i++){
+	for(uint i=0; i<_samples.size(); i++){
 		w = std::exp(_samples[i]->_logWt - _logZ);
 		if(_samples[i]->_logL > _mx[_nvars]){
 			lmax = true;
@@ -131,21 +131,28 @@ void NestedSampling::new_sample(Object *Obj, double logLstar){
 	std::vector<Variable*>::iterator itv;
 
 	for(;m>0;m--){
-		Try._logL = _callback->run(Try.draw(step));
-		if(Try._logL > logLstar){
-			*Obj = Try;
-			accept++;
-		}else{
-			// reset to previously accepted sample
-			Try = *Obj;
-			reject++;
-		}
-		if(accept > reject)
-			step *= exp(1.0/accept);
-		if(accept < reject)
-			step /=	exp(1.0/reject);
-	}
+		try{
+			Try._logL = _callback->run(Try.draw(step));
+
+			if(Try._logL > logLstar){
+				*Obj = Try;
+				accept++;
+			}else{
+				// reset to previously accepted sample
+				Try = *Obj;
+				reject++;
+			}
+			if(accept > reject)
+				step *= exp(1.0/accept);
+			if(accept < reject)
+				step /=	exp(1.0/reject);
+		}catch(SamplingException *e){
+		std::cout << "Callback during re-sampling failed" << std::endl;
+		m++;
+	        }	
+	}	
 }
+
 
 Result* NestedSampling::explore(std::vector<Variable*> vars,
 		int initial_samples, int maximum_steps){
@@ -177,7 +184,12 @@ Result* NestedSampling::explore(std::vector<Variable*> vars,
 
 	for(i=0;i<initial_samples;i++){
 		Obj[i] = new Object(vars);
-		Obj[i]->_logL = _callback->run(Obj[i]->draw());
+		try{
+			Obj[i]->_logL = _callback->run(Obj[i]->draw());
+		}catch(SamplingException *e){
+			std::cout << "Callback during initialization failed" << std::endl;
+			i--;
+		}
 #ifdef DEBUG
 		std::cout <<"Prior: " << i << " " << *Obj[i] <<std::endl;
 #endif
