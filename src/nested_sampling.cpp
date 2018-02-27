@@ -121,6 +121,37 @@ void Result::summarize(){
 }
 
 
+std::vector<Object*> Result::resample_posterior(int nsamples){
+	double _w_max = -std::numeric_limits<double>::max();
+	double start, wt;
+	int old=0;
+	int _nsamples;
+	std::random_device _r;
+	std::default_random_engine _e = std::default_random_engine(_r());
+	std::vector<Object*> new_samples;
+	std::uniform_real_distribution<double> uniform_dist(0.0, 1.0);
+
+	for(uint i=0; i<_samples.size(); i++){
+		wt = std::exp(_samples[i]->_logWt - _logZ);
+		if(wt > _w_max){
+			_w_max = wt;
+		}
+	}
+	_nsamples = std::max(nsamples, int(1./_w_max));
+	start = uniform_dist(_e);
+	for(uint i=0; i<_samples.size(); i++){
+		wt = std::exp(_samples[i]->_logWt - _logZ);
+		start += _nsamples*wt;
+		if(int(start) > old){
+			old = int(start);
+			new_samples.push_back(new Object(*_samples[i]));
+		}
+
+	}
+	return new_samples;
+}
+
+
 void NestedSampling::new_sample(Object *Obj, double logLstar){
 	double step=0.1;
 	int m = 20;

@@ -89,6 +89,9 @@ public:
 
 	// Return all samples
 	std::vector<Object*> get_samples(){return _samples;};
+
+	// Draw a representative set of samples from the posterior
+	std::vector<Object*> resample_posterior(int nsamples);
 };
 
 
