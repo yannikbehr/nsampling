@@ -123,8 +123,8 @@ void Result::summarize(){
 
 std::vector<Object*> Result::resample_posterior(int nsamples){
 	double _w_max = -std::numeric_limits<double>::max();
-	double start, wt;
-	int old=0;
+	double u, wt, S=0.;
+	int count=0;
 	int _nsamples;
 	std::random_device _r;
 	std::default_random_engine _e = std::default_random_engine(_r());
@@ -137,13 +137,13 @@ std::vector<Object*> Result::resample_posterior(int nsamples){
 			_w_max = wt;
 		}
 	}
-	_nsamples = std::max(nsamples, int(1./_w_max));
-	start = uniform_dist(_e);
+	_nsamples = std::min(nsamples, int(1./_w_max));
+	u = uniform_dist(_e);
 	for(uint i=0; i<_samples.size(); i++){
 		wt = std::exp(_samples[i]->_logWt - _logZ);
-		start += _nsamples*wt;
-		if(int(start) > old){
-			old = int(start);
+		S += _nsamples*wt;
+		if(S > u+count && count < _nsamples){
+			count++;
 			new_samples.push_back(new Object(*_samples[i]));
 		}
 
