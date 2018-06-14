@@ -101,6 +101,11 @@ public:
 class NestedSampling{
 private:
         Callback *_callback;
+	// The number of MCMC steps to take before accepting
+	// a new sample
+	int _nsteps;
+	// The scale factor for the initial MCMC step
+	double _stepscale;
 public:
 	NestedSampling(): _callback(0){};
 	~NestedSampling() { delCallback(); };
@@ -112,7 +117,8 @@ public:
 
 	// Start the algorithm after the setup is done.
 	Result* explore(std::vector<Variable*> vars, int initial_samples,
-			int maximum_steps);
+			int maximum_steps, int mcmc_steps=20,
+			double stepscale=0.1);
 };
 
 

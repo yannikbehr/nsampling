@@ -153,14 +153,15 @@ std::vector<Object*> Result::resample_posterior(int nsamples){
 
 
 void NestedSampling::new_sample(Object *Obj, double logLstar){
-	double step=0.1;
-	int m = 20;
+	double step;
+	int m;
 	int accept = 0;
 	int reject = 0;
 	Object Try(*Obj);
 	std::vector<Variable*> v;
 	std::vector<Variable*>::iterator itv;
-
+	m = _nsteps;
+	step = _stepscale;
 	for(;m>0;m--){
 		try{
 			Try._logL = _callback->run(Try.draw(step));
@@ -186,7 +187,8 @@ void NestedSampling::new_sample(Object *Obj, double logLstar){
 
 
 Result* NestedSampling::explore(std::vector<Variable*> vars,
-		int initial_samples, int maximum_steps){
+		int initial_samples, int maximum_steps,
+		int mcmc_steps, double stepscale){
 	int i;
 	int copy;
 	int worst;
@@ -196,6 +198,8 @@ Result* NestedSampling::explore(std::vector<Variable*> vars,
 	double H = 0.0;
 	double logLstar;
 	double logwidth;
+	_nsteps = mcmc_steps;
+	_stepscale = stepscale;
 
 	// The following code bit facilitates unit testing
 	Variable* pick;

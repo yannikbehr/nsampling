@@ -49,7 +49,8 @@ class NestedSamplingTestCase(unittest.TestCase):
         pycb.__disown__()
         ns.setCallback(pycb)
         rs = ns.explore(vars=[x, y], initial_samples=100,
-                        maximum_steps=1000)
+                        maximum_steps=1000, mcmc_steps=20,
+                        stepscale=0.1)
         ep = rs.getexpt()
         ev = rs.getZ()
         h = rs.getH()
