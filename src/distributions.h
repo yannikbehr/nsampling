@@ -91,4 +91,30 @@ public:
 	Normal* clone();
 };
 
+/*
+ * Constant
+ */
+
+class Constant: public Variable{
+private:
+	double _value;
+	std::string _inst_name;
+
+public:
+	double draw(){ return _value;};
+	double draw(double step){ return _value;};
+	double get_value(){return _value;};
+	std::string get_name(){ return _inst_name;};
+	Constant(std::string name, double value){
+		_inst_name = name;
+		_value = value;
+	};
+	Constant( const Constant& other){
+		_inst_name = other._inst_name;
+		_value = other._value;
+	};
+
+	Constant* clone(){ return new Constant(*this);};
+};
+
 #endif
