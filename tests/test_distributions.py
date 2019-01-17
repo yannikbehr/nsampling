@@ -2,7 +2,7 @@ import unittest
 
 import numpy as np
 
-from sampling import Uniform, Normal, Constant
+from nsampling import Uniform, Normal, Constant
 
 
 class DistributionsTestCase(unittest.TestCase):
@@ -37,7 +37,7 @@ class DistributionsTestCase(unittest.TestCase):
         val = 6.2
         c = Constant('c', val)
         self.assertEqual(c.draw(), val)
-        self.assertEqual(c.draw(0.1), val)
+        self.assertEqual(c.trial(0.1), val)
         self.assertEqual(c.get_value(), val)
         c1 = c.clone()
         self.assertEqual(c1.get_value(), c.get_value())
