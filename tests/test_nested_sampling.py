@@ -1,29 +1,19 @@
-import inspect
-import os
 import unittest
 
 import numpy as np
 
-from sampling.sampling import NestedSampling, Uniform, CUniform, Callback
+from nsampling import NestedSampling, CUniform
+from functools import partial
 
 
-class PyCallback(Callback):
-
-    def __init__(self, data):
-        Callback.__init__(self)
-        self.data = data
-
-    def set_data(self, data):
-        self.data = data
-
-    def run(self, vals):
+def lighthouse(vals, data):
         x = vals[0]
         y = vals[1]
-        N = len(self.data)
+        N = len(data)
         logL = 0
         for k in range(0, N):
             logL += np.log((y / np.pi) /
-                           ((self.data[k] - x) * (self.data[k] - x) + y * y))
+                           ((data[k] - x) * (data[k] - x) + y * y))
         return logL
 
 
@@ -45,27 +35,37 @@ class NestedSamplingTestCase(unittest.TestCase):
              1.94, -0.11, 1.57, 0.57]
 
         ns = NestedSampling()
-        pycb = PyCallback(D)
-        pycb.__disown__()
-        ns.setCallback(pycb)
-        rs = ns.explore(vars=[x, y], initial_samples=100,
-                        maximum_steps=1000, mcmc_steps=20,
-                        stepscale=0.1)
+        lh = partial(lighthouse, data=D)
+        rs = ns.explore([x, y], 100, 1000, lh, 20, 0.1)
         ep = rs.getexpt()
         ev = rs.getZ()
         h = rs.getH()
         var = rs.getvar()
         m = rs.getmax()
-        self.assertAlmostEqual(ep[0], 1.24208, 5)
-        self.assertAlmostEqual(ep[1], 1.00426, 5)
-        self.assertAlmostEqual(np.sqrt(var[0]), 0.182403, 6)
-        self.assertAlmostEqual(np.sqrt(var[1]), 0.194502, 6)
-        self.assertAlmostEqual(m[0], 1.27219, 5)
-        self.assertAlmostEqual(m[1], 0.915382, 6)
-        self.assertAlmostEqual(m[2], -156.412, 3)
-        self.assertAlmostEqual(ev[0], -160.293, 3)
-        self.assertAlmostEqual(ev[1], 0.163994, 6)
-        self.assertAlmostEqual(h, 2.68939, 5)
+        self.assertAlmostEqual(ep[0], 1.247664, 6)
+        self.assertAlmostEqual(ep[1], 0.990766, 6)
+        self.assertAlmostEqual(np.sqrt(var[0]), 0.169442, 6)
+        self.assertAlmostEqual(np.sqrt(var[1]), 0.188281, 6)
+        self.assertAlmostEqual(m[0], 1.262122, 6)
+        self.assertAlmostEqual(m[1], 0.938676, 6)
+        self.assertAlmostEqual(m[2], -156.4098, 4)
+        self.assertAlmostEqual(ev[0], -160.2666, 4)
+        self.assertAlmostEqual(ev[1], 0.167092, 6)
+        self.assertAlmostEqual(h, 2.791979, 6)
+
+    def test_exception(self):
+
+        def callback_raising_exception(vals):
+            raise Exception("Something went wrong")
+
+        x = CUniform('x', -2., 2.)
+        y = CUniform('y', 0., 2.)
+        ns = NestedSampling()
+        with self.assertRaises(Exception):
+            ns.explore([x, y], 100, 1000,
+                       callback_raising_exception,
+                       20, 0.1)
+
 
 
 def suite():

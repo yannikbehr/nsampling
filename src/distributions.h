@@ -6,12 +6,13 @@
 
 class Variable{
 public:
+	virtual ~Variable(){};
 	// Draw a new sample from the distribution
 	virtual double draw() = 0;
 
 	// Draw a sample around the previous sample using 'step' as the scaling
 	// factor
-	virtual double draw(double step) = 0;
+	virtual double trial(double step) = 0;
 
 	// Return the latest sample
 	virtual double get_value() = 0;
@@ -37,7 +38,7 @@ private:
 
 public:
 	double draw();
-	double draw(double step);
+	double trial(double step);
 	double get_value();
 	std::string get_name();
 	Uniform(std::string name, double min, double max);
@@ -60,7 +61,7 @@ private:
 
 public:
 	double draw();
-	double draw(double step);
+	double trial(double step);
 	double get_value();
 	std::string get_name();
 	CUniform(std::string name, double min, double max);
@@ -83,7 +84,7 @@ private:
 
 public:
 	double draw();
-	double draw(double step);
+	double trial(double step);
 	double get_value();
 	std::string get_name();
 	Normal(std::string name, double mean, double sigma);
@@ -102,7 +103,7 @@ private:
 
 public:
 	double draw(){ return _value;};
-	double draw(double step){ return _value;};
+	double trial(double step){ return _value;};
 	double get_value(){return _value;};
 	std::string get_name(){ return _inst_name;};
 	Constant(std::string name, double value){

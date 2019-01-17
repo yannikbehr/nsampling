@@ -1,4 +1,4 @@
-#include <distributions.h>
+#include "distributions.h"
 #include <cstdlib>
 #include <cmath>
 #include <random>
@@ -9,14 +9,13 @@ std::default_random_engine Uniform::_e = std::default_random_engine(Uniform::_r(
 std::random_device Normal::_r;
 std::default_random_engine Normal::_e = std::default_random_engine(Normal::_r());
 
-
 double Uniform::draw(){
 	std::uniform_real_distribution<double> uniform_dist(0.0, 1.0);
 	_u = uniform_dist(_e);
 	return (_xmax-_xmin)*_u + _xmin;
 }
 
-double Uniform::draw(double step){
+double Uniform::trial(double step){
 	std::uniform_real_distribution<double> uniform_dist(-1.0, 1.0);
 	_u += step * uniform_dist(_e);
 	_u -= floor(_u); // wraparound to stay within (0,1)
@@ -57,7 +56,7 @@ double CUniform::draw(){
 	return (_xmax-_xmin)*_u + _xmin;
 }
 
-double CUniform::draw(double step){
+double CUniform::trial(double step){
 	_u += step * (2.*(rand()+0.5)/(RAND_MAX+1.0) -1.);
 	_u -= floor(_u); // wraparound to stay within (0,1)
 	return (_xmax-_xmin)*_u + _xmin;
@@ -68,6 +67,7 @@ CUniform::CUniform(std::string name, double min, double max){
 		_xmin = min;
 		_xmax = max;
 		_u = 0.;
+		srand(42);
 }
 
 CUniform::CUniform(const CUniform& other){
@@ -123,7 +123,7 @@ double Normal::draw(){
 	return _sigma*_y+_mean; 
 }
 
-double Normal::draw(double step){
+double Normal::trial(double step){
 	std::uniform_real_distribution<double> uniform_dist(-1.0, 1.0);
 	_u1 += step * uniform_dist(_e);
 	_u2 += step * uniform_dist(_e);

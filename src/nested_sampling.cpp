@@ -4,19 +4,19 @@
 #include <typeinfo>
 #include <string>
 
-#include <nested_sampling.h>
+#include "nested_sampling.h"
 
-Object::Object(std::vector<Variable*> vars){
-	std::vector<Variable*>::iterator itv;
+Object::Object(std::vector<std::shared_ptr<Variable> > vars){
+	std::vector<std::shared_ptr<Variable> >::iterator itv;
 	for(itv=vars.begin(); itv !=vars.end(); itv++){
-		_vars.push_back((*itv)->clone());
+		_vars.push_back(std::shared_ptr<Variable>((*itv)->clone()));
 	}
 }
 
 Object::Object(Object& other){
-	std::vector<Variable*>::iterator itv;
+	std::vector<std::shared_ptr<Variable> >::iterator itv;
 	for(itv=other._vars.begin(); itv !=other._vars.end(); itv++){
-		_vars.push_back((*itv)->clone());
+		_vars.push_back(std::shared_ptr<Variable>((*itv)->clone()));
 	}
 	_logL = other._logL;
 	_logWt = other._logWt;
@@ -28,9 +28,9 @@ Object& Object::operator=(const Object& other){
 			_logL = other._logL;
 			_logWt = other._logWt;
 			_vars.clear();
-			std::vector<Variable*>::const_iterator itv;
+			std::vector<std::shared_ptr<Variable> >::const_iterator itv;
 			for(itv=other._vars.begin(); itv !=other._vars.end(); itv++){
-				_vars.push_back((*itv)->clone());
+				_vars.push_back(std::shared_ptr<Variable>((*itv)->clone()));
 			}
 		}
 		return *this;
@@ -38,7 +38,7 @@ Object& Object::operator=(const Object& other){
 
 std::ostream& operator<<(std::ostream& os, const Object& o)
 {
-  std::vector<Variable*>::const_iterator itv;
+  std::vector<std::shared_ptr<Variable> >::const_iterator itv;
   os << "logL: " << o._logL;
   os << "; logWt: " << o._logWt;
 
@@ -50,7 +50,7 @@ std::ostream& operator<<(std::ostream& os, const Object& o)
 }
 
 std::vector<double> Object::draw(){
-	std::vector<Variable*>::iterator itv;
+	std::vector<std::shared_ptr<Variable> >::iterator itv;
 	std::vector<double> vals;
 	for(itv=_vars.begin(); itv !=_vars.end(); itv++){
 		vals.push_back((*itv)->draw());
@@ -58,17 +58,26 @@ std::vector<double> Object::draw(){
 	return vals;
 }
 
-std::vector<double> Object::draw(double step){
-	std::vector<Variable*>::iterator itv;
+std::vector<double> Object::trial(double step){
+	std::vector<std::shared_ptr<Variable> >::iterator itv;
 	std::vector<double> vals;
 	for(itv=_vars.begin(); itv !=_vars.end(); itv++){
-		vals.push_back((*itv)->draw(step));
+		vals.push_back((*itv)->trial(step));
+	}
+	return vals;
+}
+
+std::vector<double> Object::get_value(){
+	std::vector<std::shared_ptr<Variable> >::iterator itv;
+	std::vector<double> vals;
+	for(itv=_vars.begin(); itv !=_vars.end(); itv++){
+		vals.push_back((*itv)->get_value());
 	}
 	return vals;
 }
 
 
-Result::Result(std::vector<Object*> Samples, double LogZ, double H, int n){
+Result::Result(std::vector<std::shared_ptr<Object> > Samples, double LogZ, double H, int n){
 	_samples=Samples;
 	_logZ = LogZ;
 	_H = H;
@@ -121,14 +130,14 @@ void Result::summarize(){
 }
 
 
-std::vector<Object*> Result::resample_posterior(int nsamples){
+std::vector<std::shared_ptr<Object> > Result::resample_posterior(int nsamples){
 	double _w_max = -std::numeric_limits<double>::max();
 	double u, wt, S=0.;
 	int count=0;
 	int _nsamples;
 	std::random_device _r;
 	std::default_random_engine _e = std::default_random_engine(_r());
-	std::vector<Object*> new_samples;
+	std::vector<std::shared_ptr<Object> > new_samples;
 	std::uniform_real_distribution<double> uniform_dist(0.0, 1.0);
 
 	for(uint i=0; i<_samples.size(); i++){
@@ -144,7 +153,7 @@ std::vector<Object*> Result::resample_posterior(int nsamples){
 		S += _nsamples*wt;
 		if(S > u+count && count < _nsamples){
 			count++;
-			new_samples.push_back(new Object(*_samples[i]));
+			new_samples.push_back(std::make_shared<Object>(*_samples[i]));
 		}
 
 	}
@@ -152,7 +161,8 @@ std::vector<Object*> Result::resample_posterior(int nsamples){
 }
 
 
-void NestedSampling::new_sample(Object *Obj, double logLstar){
+void NestedSampling::new_sample(Object *Obj, double logLstar,
+				const std::function<double (std::vector<double>)> &likelihood){
 	double step;
 	int m;
 	int accept = 0;
@@ -164,7 +174,7 @@ void NestedSampling::new_sample(Object *Obj, double logLstar){
 	step = _stepscale;
 	for(;m>0;m--){
 		try{
-			Try._logL = _callback->run(Try.draw(step));
+			Try._logL = likelihood(Try.trial(step));
 
 			if(Try._logL > logLstar){
 				*Obj = Try;
@@ -186,8 +196,9 @@ void NestedSampling::new_sample(Object *Obj, double logLstar){
 }
 
 
-Result* NestedSampling::explore(std::vector<Variable*> vars,
+Result* NestedSampling::explore(std::vector<std::shared_ptr<Variable> > vars,
 		int initial_samples, int maximum_steps,
+		const std::function<double (std::vector<double>)> &likelihood,
 		int mcmc_steps, double stepscale){
 	int i;
 	int copy;
@@ -203,7 +214,7 @@ Result* NestedSampling::explore(std::vector<Variable*> vars,
 
 	// The following code bit facilitates unit testing
 	Variable* pick;
-	Variable* tvar = vars[0];
+	Variable* tvar = vars[0].get();
 	const std::type_info& ti1 = typeid(*tvar);
 	const std::type_info& ti2 = typeid(CUniform);
 	if(ti1.hash_code() == ti2.hash_code()){
@@ -212,15 +223,15 @@ Result* NestedSampling::explore(std::vector<Variable*> vars,
 		pick = new Uniform("pick",0,initial_samples);
 	}
 
-	std::vector<Object*> Samples(maximum_steps);
-	std::vector<Object*> Obj(initial_samples);
+	std::vector<std::shared_ptr<Object> > Samples(maximum_steps);
+	std::vector<std::shared_ptr<Object> > Obj(initial_samples);
 
 	logwidth = log(1.0 - exp(-1.0/initial_samples));
 
 	for(i=0;i<initial_samples;i++){
-		Obj[i] = new Object(vars);
+		Obj[i] = std::make_shared<Object>(vars);
 		try{
-			Obj[i]->_logL = _callback->run(Obj[i]->draw());
+			Obj[i]->_logL = likelihood(Obj[i]->draw());
 		}catch(SamplingException *e){
 			std::cout << "Callback during initialization failed" << std::endl;
 			i--;
@@ -244,7 +255,7 @@ Result* NestedSampling::explore(std::vector<Variable*> vars,
 				+ exp(logZ - logZnew) * (H + logZ) - logZnew;
 		logZ = logZnew;
 		// Posterior Samples (optional)
-		Samples[nest] = new Object(*Obj[worst]);
+		Samples[nest] = std::make_shared<Object>(*Obj[worst]);
 #ifdef DEBUG
 		std::cout <<"Samples[nest]: " << *Samples[nest] <<std::endl;
 #endif
@@ -255,7 +266,7 @@ Result* NestedSampling::explore(std::vector<Variable*> vars,
 		*Obj[worst] = *Obj[copy]; // overwrite worst object
 
 		// Evolve copied object within constraint
-		new_sample(Obj[worst], logLstar);
+		new_sample(Obj[worst].get(), logLstar, likelihood);
 		// Shrink interval
 		logwidth -= 1.0/initial_samples;
 	}

@@ -2,25 +2,14 @@
 #define NESTEDSAMPLING_H
 
 #include <vector>
-#include <distributions.h>
+#include "distributions.h"
 #include <exception>
+#include <memory>
 
 #define PLUS(x,y) (x > y ? x + log(1+std::exp(y-x)) : y + log(1+std::exp(x-y)))
 
 
 class SamplingException : public std::exception {
-};
-
-
-/*
- *  Callback function that does the likelihood computation.
- */
-class Callback {
-public:
-        virtual ~Callback() {}
-
-        // Evaluate the likelihood function
-        virtual double run(std::vector<double> vals) { return 0.0; }
 };
 
 
@@ -32,9 +21,9 @@ class Object{
 public:
 	double _logL;
 	double _logWt;
-	std::vector<Variable*> _vars;
+	std::vector<std::shared_ptr<Variable> > _vars;
 
-	Object(std::vector<Variable*> vars);
+	Object(std::vector<std::shared_ptr<Variable> > vars);
 	Object(Object& other);
 	Object& operator=(const Object& other);
 	friend std::ostream& operator<<(std::ostream& os, const Object& o);
@@ -43,8 +32,12 @@ public:
 	std::vector<double> draw();
 
 	// Draw a sample around the previous sample from every random variable that
-	// is part of the Object using 'step' is a scaling factor
-	std::vector<double> draw(double step);
+	// is part of the Object using 'step' as a scaling factor
+	std::vector<double> trial(double step);
+
+	double get_logL(){return _logL;};
+	double get_logWt(){return _logWt;};
+	std::vector<double> get_value();
 };
 
 
@@ -53,13 +46,13 @@ public:
  */
 class Result{
 public:
-	std::vector<Object*> _samples;
+	std::vector<std::shared_ptr<Object> > _samples;
 	double _logZ, _H;
 	int _n, _nvars;
 	std::vector<double> _e, _var, _mx;
 	std::vector<std::string> _vnames;
 
-	Result(std::vector<Object*> Samples, double LogZ, double H, int n);
+	Result(std::vector<std::shared_ptr<Object> > Samples, double LogZ, double H, int n);
 	~Result(){};
 
 	// Print a summary of the results to stdout
@@ -88,10 +81,10 @@ public:
 	double getH(){return _H;};
 
 	// Return all samples
-	std::vector<Object*> get_samples(){return _samples;};
+	std::vector<std::shared_ptr<Object> > get_samples(){return _samples;};
 
 	// Draw a representative set of samples from the posterior
-	std::vector<Object*> resample_posterior(int nsamples);
+	std::vector<std::shared_ptr<Object> > resample_posterior(int nsamples);
 };
 
 
@@ -100,24 +93,24 @@ public:
  */
 class NestedSampling{
 private:
-        Callback *_callback;
 	// The number of MCMC steps to take before accepting
 	// a new sample
 	int _nsteps;
 	// The scale factor for the initial MCMC step
 	double _stepscale;
 public:
-	NestedSampling(): _callback(0){};
-	~NestedSampling() { delCallback(); };
-	void delCallback() { delete _callback; _callback = 0; };
+	NestedSampling(){};
+	~NestedSampling() {};
 
-	// Setup the callback function which computes the log-likelihood value
-	void setCallback(Callback *cb) { delCallback(); _callback = cb; };
-	void new_sample(Object *Obj, double logLstar);
+	// MCMC step to find a new sample 
+	void new_sample(Object *Obj, double logLstar,
+			const std::function<double (std::vector<double>)> &likelihood);
 
-	// Start the algorithm after the setup is done.
-	Result* explore(std::vector<Variable*> vars, int initial_samples,
-			int maximum_steps, int mcmc_steps=20,
+	// Start the algorithm
+	Result* explore(std::vector<std::shared_ptr<Variable> > vars, int initial_samples,
+			int maximum_steps,
+		       	const std::function<double (std::vector<double>)> &likelihood,
+			int mcmc_steps=20,
 			double stepscale=0.1);
 };
 
