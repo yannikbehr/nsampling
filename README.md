@@ -1,28 +1,15 @@
 ![](examples/lighthouse_problem.png)
-# Sampling
-Sampling is a C++ library with a Python interface intended to implement various
-importance sampling algorithms. At the moment it only implements Nested Sampling
-as published by Sivia and Skilling [1].
+# nsampling
+nsampling is an implementation of the Nested Sampling algorithm [1]. It is
+written in C++ and has a Python interface written using pybind11 [2].  
 
-As it uses swig to generate the Python interface
-many other high-level language interfaces could be supported.
 ## Installation
 
 ### Dependencies
 * cmake (>=3.5)
-* swig (>=3.0)
 
-### Compiling the library and python extension module
+### Installing the python module
 ```
-mkdir build
-cd build
-cmake ..
-make install
-```
-
-### Installing the python extension module
-```
-cd python
 python setup.py install
 ```
 
@@ -43,4 +30,5 @@ jupyter notebook&
 ```
 
 #### _References_
-D.S. Sivia with J. Skilling, Data Analysis, 2006, 2nd edition, Oxford University Press
+[1] D.S. Sivia with J. Skilling, Data Analysis, 2006, 2nd edition, Oxford University Press
+[2] https://github.com/pybind/pybind11
