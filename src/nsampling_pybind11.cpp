@@ -65,6 +65,11 @@ PYBIND11_MODULE(nsampling, m){
 		.def("resample_posterior", &Result::resample_posterior);
 	py::class_<NestedSampling>(m, "NestedSampling")
 		.def(py::init<>())
-		.def("explore", &NestedSampling::explore);
+		.def("explore", &NestedSampling::explore, py::arg("vars"),
+				py::arg("initial_samples"),
+				py::arg("maximum_steps"),
+				py::arg("likelihood"),
+				py::arg("mcmc_steps") = 20,
+				py::arg("stepscale") = 0.1);
 
 }
