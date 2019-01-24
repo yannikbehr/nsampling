@@ -52,6 +52,8 @@ PYBIND11_MODULE(nsampling, m){
 		.def("get_logL", &Object::get_logL)
 		.def("get_logWt", &Object::get_logWt)
 		.def("get_value", &Object::get_value)
+		.def("get_logZ", &Object::get_logZ)
+		.def("get_H", &Object::get_H)
 	        .def("assign", &Object::operator=, py::is_operator());
 	py::class_<Result>(m, "Result")
 		.def(py::init<std::vector<std::shared_ptr<Object> >,double, double, int>())
@@ -70,6 +72,7 @@ PYBIND11_MODULE(nsampling, m){
 				py::arg("maximum_steps"),
 				py::arg("likelihood"),
 				py::arg("mcmc_steps") = 20,
-				py::arg("stepscale") = 0.1);
+				py::arg("stepscale") = 0.1,
+				py::arg("tolZ") = 1e-3);
 
 }

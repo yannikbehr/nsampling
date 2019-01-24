@@ -38,7 +38,7 @@ class NestedSamplingTestCase(unittest.TestCase):
         lh = partial(lighthouse, data=D)
         rs = ns.explore(vars=[x, y], initial_samples=100,
                         maximum_steps=1000,
-                        likelihood=lh)
+                        likelihood=lh, tolZ=1e-10)
         ep = rs.getexpt()
         ev = rs.getZ()
         h = rs.getH()

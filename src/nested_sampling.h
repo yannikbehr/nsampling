@@ -21,6 +21,8 @@ class Object{
 public:
 	double _logL;
 	double _logWt;
+	double _logZ;
+	double _H;
 	std::vector<std::shared_ptr<Variable> > _vars;
 
 	Object(std::vector<std::shared_ptr<Variable> > vars);
@@ -37,6 +39,8 @@ public:
 
 	double get_logL(){return _logL;};
 	double get_logWt(){return _logWt;};
+	double get_logZ(){return _logZ;};
+	double get_H(){return _H;};
 	std::vector<double> get_value();
 };
 
@@ -111,7 +115,8 @@ public:
 			int maximum_steps,
 		       	const std::function<double (std::vector<double>)> &likelihood,
 			int mcmc_steps=20,
-			double stepscale=0.1);
+			double stepscale=0.1,
+			double tolZ=1e-3);
 };
 
 

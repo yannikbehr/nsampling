@@ -20,6 +20,8 @@ Object::Object(Object& other){
 	}
 	_logL = other._logL;
 	_logWt = other._logWt;
+	_logZ = other._logZ;
+	_H = other._H;
 }
 
 
@@ -27,6 +29,8 @@ Object& Object::operator=(const Object& other){
 		if(&other != this) {
 			_logL = other._logL;
 			_logWt = other._logWt;
+			_logZ = other._logZ;
+			_H = other._H;
 			_vars.clear();
 			std::vector<std::shared_ptr<Variable> >::const_iterator itv;
 			for(itv=other._vars.begin(); itv !=other._vars.end(); itv++){
@@ -199,10 +203,10 @@ void NestedSampling::new_sample(Object *Obj, double logLstar,
 Result* NestedSampling::explore(std::vector<std::shared_ptr<Variable> > vars,
 		int initial_samples, int maximum_steps,
 		const std::function<double (std::vector<double>)> &likelihood,
-		int mcmc_steps, double stepscale){
+		int mcmc_steps, double stepscale, double tolZ){
 	int i;
 	int copy;
-	int worst;
+	int worst, best;
 	int nest;
 	double logZnew;
 	double logZ = -std::numeric_limits<double>::max();
@@ -223,7 +227,8 @@ Result* NestedSampling::explore(std::vector<std::shared_ptr<Variable> > vars,
 		pick = new Uniform("pick",0,initial_samples);
 	}
 
-	std::vector<std::shared_ptr<Object> > Samples(maximum_steps);
+	std::vector<std::shared_ptr<Object> > Samples;
+	Samples.reserve(maximum_steps);
 	std::vector<std::shared_ptr<Object> > Obj(initial_samples);
 
 	logwidth = log(1.0 - exp(-1.0/initial_samples));
@@ -243,22 +248,35 @@ Result* NestedSampling::explore(std::vector<std::shared_ptr<Variable> > vars,
 	for(nest=0; nest<maximum_steps; nest++){
 		// Worst object in collection with Weight = width*Likelihood
 		worst = 0;
+		best = 0;
 		for(i=1; i<initial_samples; i++){
 			if(Obj[i]->_logL < Obj[worst]->_logL)
 				worst = i;
+			if(Obj[i]->_logL > Obj[best]->_logL)
+				best = i;
 		}
 
 		Obj[worst]->_logWt = logwidth + Obj[worst]->_logL;
+		Obj[best]->_logWt = logwidth + Obj[best]->_logL;
 		// Update Evidence Z and Information H
 		logZnew = PLUS(logZ, Obj[worst]->_logWt);
 		H = exp(Obj[worst]->_logWt - logZnew) * Obj[worst]->_logL
 				+ exp(logZ - logZnew) * (H + logZ) - logZnew;
 		logZ = logZnew;
+			
+		Obj[worst]->_logZ = logZ;
+		Obj[worst]->_H = H;
 		// Posterior Samples (optional)
-		Samples[nest] = std::make_shared<Object>(*Obj[worst]);
+		Samples.push_back(std::make_shared<Object>(*Obj[worst]));
 #ifdef DEBUG
 		std::cout <<"Samples[nest]: " << *Samples[nest] <<std::endl;
 #endif
+		if(tolZ*exp(logZ) > exp(Obj[best]->_logWt)){
+#ifdef DEBUG
+			std::cout << Obj[best]->_logWt << ", " << logZ << std::endl;
+#endif
+			break;
+		}
 		// Kill worst object in favour of copy of different survivor
 		do copy = (int)(pick->draw()); // force 0 <= copy < n
 		while(copy == worst && initial_samples > 1); // don't kill if n is only 1

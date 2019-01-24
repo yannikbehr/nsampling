@@ -58,7 +58,7 @@ class CMakeBuild(build_ext):
 
 setup(
     name='nsampling',
-    version='0.2',
+    version='0.2.1',
     author='Yannik Behr',
     author_email='y.behr@gns.cri.nz',
     description='Nested Sampling implemented in C++',
