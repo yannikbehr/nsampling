@@ -31,4 +31,5 @@ jupyter notebook&
 
 #### _References_
 [1] D.S. Sivia with J. Skilling, Data Analysis, 2006, 2nd edition, Oxford University Press
+
 [2] https://github.com/pybind/pybind11
