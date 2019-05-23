@@ -165,6 +165,15 @@ std::vector<std::shared_ptr<Object> > Result::resample_posterior(int nsamples){
 }
 
 
+NestedSampling::NestedSampling(int seed){
+	if(seed > 0){
+		InvCDF::_e = std::default_random_engine(seed);
+		Normal::_e = std::default_random_engine(seed);
+		Uniform::_e = std::default_random_engine(seed);
+	}
+	
+}
+
 void NestedSampling::new_sample(Object *Obj, double logLstar,
 				const std::function<double (std::vector<double>)> &likelihood){
 	double step;

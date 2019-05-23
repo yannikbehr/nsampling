@@ -32,16 +32,16 @@ private:
 	double _u;
 	double _xmin, _xmax;
 	std::string _inst_name;
-	static std::random_device _r;
-	static std::default_random_engine _e;
-
 
 public:
+	static std::random_device _r;
+	static std::default_random_engine _e;
 	double draw();
 	double trial(double step);
 	double get_value();
 	std::string get_name();
-	Uniform(std::string name, double min, double max);
+	Uniform(std::string name, double min, double max,
+		int seed=-1);
 	Uniform(const Uniform& other);
 	Uniform* clone();
 };
@@ -78,16 +78,16 @@ private:
 	double _u1, _u2, _y, _pi;
 	double _mean, _sigma;
 	std::string _inst_name;
-	static std::random_device _r;
-	static std::default_random_engine _e;
-
 
 public:
+	static std::random_device _r;
+	static std::default_random_engine _e;
 	double draw();
 	double trial(double step);
 	double get_value();
 	std::string get_name();
-	Normal(std::string name, double mean, double sigma);
+	Normal(std::string name, double mean,
+	       	double sigma, int seed=-1);
 	Normal(const Normal& other);
 	Normal* clone();
 };
@@ -129,10 +129,10 @@ private:
 	double _u, _val;
 	std::vector<double> _x, _p;
 	std::string _inst_name;
-	static std::random_device _r;
-	static std::default_random_engine _e;
 
 public:
+	static std::random_device _r;
+	static std::default_random_engine _e;
 	double draw();
 	double trial(double step);
 	double get_value();

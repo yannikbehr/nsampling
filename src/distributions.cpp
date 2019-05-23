@@ -25,11 +25,13 @@ double Uniform::trial(double step){
 	return (_xmax-_xmin)*_u + _xmin;
 }
 
-Uniform::Uniform(std::string name, double min, double max){
+Uniform::Uniform(std::string name, double min, double max, int seed){
 		_inst_name = name;
 		_xmin = min;
 		_xmax = max;
 		_u = 0.;
+		if(seed > 0)
+			_e = std::default_random_engine(seed);
 }
 
 Uniform::Uniform(const Uniform& other){
@@ -93,7 +95,8 @@ std::string CUniform::get_name(){
 }
 
 
-Normal::Normal(std::string name, double mean, double sigma){
+Normal::Normal(std::string name, double mean, double sigma,
+		int seed){
 	_inst_name = name;
 	_mean = mean;
 	_sigma = sigma;
@@ -101,6 +104,8 @@ Normal::Normal(std::string name, double mean, double sigma){
 	_u2 = 0.;
 	_y = 0.;
 	_pi = 4*atan(1);
+	if(seed > 0)
+		_e = std::default_random_engine(seed);
 }
 
 Normal::Normal(const Normal& other){

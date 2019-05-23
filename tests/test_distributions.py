@@ -10,7 +10,7 @@ from nsampling import Uniform, Normal, Constant, InvCDF
 class DistributionsTestCase(unittest.TestCase):
 
     def test_uniform(self):
-        x = Uniform('x', -2., 2.)
+        x = Uniform('x', -2., 2., seed=42)
         y = x.clone()
         self.assertEqual(x.get_value(), y.get_value())
         self.assertEqual(y.get_name(), x.get_name())
@@ -21,7 +21,7 @@ class DistributionsTestCase(unittest.TestCase):
     def test_normal(self):
         mean = 1.
         sigma = 0.2
-        x = Normal('x', mean, sigma)
+        x = Normal('x', mean, sigma, seed=42324411)
         y = x.clone()
         self.assertEqual(x.get_value(), y.get_value())
         self.assertEqual(y.get_name(), x.get_name())

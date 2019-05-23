@@ -103,7 +103,7 @@ private:
 	// The scale factor for the initial MCMC step
 	double _stepscale;
 public:
-	NestedSampling(){};
+	NestedSampling(int seed=-1);
 	~NestedSampling() {};
 
 	// MCMC step to find a new sample 
