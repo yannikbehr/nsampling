@@ -10,6 +10,18 @@ namespace py = pybind11;
 PYBIND11_MODULE(nsampling, m){
 	// Distributions
 	py::class_<Variable, std::shared_ptr<Variable> >(m, "Variable");
+	py::class_<InvCDF, Variable, std::shared_ptr<InvCDF> >(m, "InvCDF")
+		.def(py::init<std::string, std::vector<double> , std::vector<double>, int>(),
+		     		py::arg("name"),
+				py::arg("x"),
+				py::arg("p"),
+				py::arg("seed") = -1)
+		.def(py::init<const InvCDF &>())
+		.def("draw", &InvCDF::draw)
+		.def("trial", &InvCDF::trial)
+		.def("get_name", &InvCDF::get_name, "Get the variable name.")
+		.def("get_value", &InvCDF::get_value, "Get the variable value.")
+		.def("clone", &InvCDF::clone, "Return a clone of the current instance.");
 	py::class_<Constant, Variable, std::shared_ptr<Constant> >(m, "Constant")
 		.def(py::init<std::string, double>())
 		.def(py::init<const Constant &>())

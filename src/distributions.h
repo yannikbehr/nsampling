@@ -118,4 +118,28 @@ public:
 	Constant* clone(){ return new Constant(*this);};
 };
 
+/*
+ * Inverse Transform Sampling
+ *
+ * Sample from a given discrete CDF
+ */
+
+class InvCDF: public Variable{
+private:
+	double _u, _val;
+	std::vector<double> _x, _p;
+	std::string _inst_name;
+	static std::random_device _r;
+	static std::default_random_engine _e;
+
+public:
+	double draw();
+	double trial(double step);
+	double get_value();
+	std::string get_name();
+	InvCDF(std::string name, std::vector<double> x,
+	       std::vector<double> p, int seed=-1);
+	InvCDF(const InvCDF& other);
+	InvCDF* clone();
+};
 #endif

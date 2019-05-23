@@ -9,6 +9,9 @@ std::default_random_engine Uniform::_e = std::default_random_engine(Uniform::_r(
 std::random_device Normal::_r;
 std::default_random_engine Normal::_e = std::default_random_engine(Normal::_r());
 
+std::random_device InvCDF::_r;
+std::default_random_engine InvCDF::_e = std::default_random_engine(InvCDF::_r());
+
 double Uniform::draw(){
 	std::uniform_real_distribution<double> uniform_dist(0.0, 1.0);
 	_u = uniform_dist(_e);
@@ -143,3 +146,74 @@ std::string Normal::get_name(){
 }
 
 
+InvCDF::InvCDF(std::string name, std::vector<double> x, std::vector<double> p, int seed){
+	_inst_name = name;
+	_x = x;
+	_p = p;
+	if(seed > 0)
+		_e = std::default_random_engine(seed);
+}
+
+InvCDF::InvCDF(const InvCDF& other){
+	_inst_name = other._inst_name;
+	_x = other._x;
+	_p = other._p;
+	_u = other._u;
+}
+
+double InvCDF::draw(){
+	int lo, mid, hi;
+	std::uniform_real_distribution<double> uniform_dist(0.0, 1.0);
+	_u = uniform_dist(_e);
+	if(_u <= _p.front())
+    		return _x.front();
+	if(_u >= _p.back())
+    		return _x.back();
+	lo = 0;
+	hi = _p.size();
+	while(lo < hi){
+    		mid = (int)(hi + lo)/2;
+    		if(_u < _p[mid]){
+        		hi = mid;
+    		}else{
+        		lo = mid + 1;
+    		}	
+	}
+	_val = _x[lo-1];
+	return _val;
+}
+
+double InvCDF::trial(double step){
+	int lo, mid, hi;
+	std::uniform_real_distribution<double> uniform_dist(-1.0, 1.0);
+	_u += step * uniform_dist(_e);
+	_u -= floor(_u); // wraparound to stay within (0,1)
+	if(_u <= _p.front())
+    		return _x.front();
+	if(_u >= _p.back())
+    		return _x.back();
+	lo = 0;
+	hi = _p.size();
+	while(lo < hi){
+    		mid = (int)(hi + lo)/2;
+    		if(_u < _p[mid]){
+        		hi = mid;
+    		}else{
+        		lo = mid + 1;
+    		}	
+	}
+	_val = _x[lo-1];
+	return _val;
+}
+
+double InvCDF::get_value(){
+	return _val;
+}
+
+std::string InvCDF::get_name(){
+	return _inst_name;
+}
+
+InvCDF* InvCDF::clone(){
+	return new InvCDF(*this);
+}
