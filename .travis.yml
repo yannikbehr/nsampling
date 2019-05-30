@@ -1,0 +1,11 @@
+language: python
+# command to install dependencies
+addons:
+    apt:
+        packages:
+            - cmake
+install:
+  - pip install scipy numpy
+  - python setup.py install
+# command to run tests
+script: pytest tests
