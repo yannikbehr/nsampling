@@ -1,6 +1,6 @@
 ![](examples/lighthouse_problem.png)
 
-[![Build Status](https://travis-ci.org/yannikbehr/nsampling.svg?branch=yannikbehr-travis)](https://travis-ci.org/yannikbehr/nsampling)
+[![Build Status](https://travis-ci.org/yannikbehr/nsampling.svg?branch=master)](https://travis-ci.org/yannikbehr/nsampling)
 
 # nsampling
 nsampling is an implementation of the Nested Sampling algorithm [1]. It is
