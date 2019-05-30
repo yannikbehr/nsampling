@@ -6,6 +6,8 @@ addons:
             - cmake
 install:
   - pip install scipy numpy
+  - pip install pytest pytest-cov
   - python setup.py install
 # command to run tests
-script: pytest tests
+script: 
+  - pytest --cov=./tests tests
