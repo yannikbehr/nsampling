@@ -1,11 +1,19 @@
 language: python
-# command to install dependencies
+
+dist: xenial
+
 addons:
     apt:
         packages:
             - cmake
 install:
   - pip install scipy numpy
+  - pip install codecov
+  - pip install pytest pytest-cov
   - python setup.py install
 # command to run tests
-script: pytest tests
+script: 
+  - pytest --cov=./tests tests
+
+after_success:
+   - codecov --token=308265a4-fa25-42de-8006-e260b6a6b190
