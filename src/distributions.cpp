@@ -164,6 +164,7 @@ InvCDF::InvCDF(const InvCDF& other){
 	_x = other._x;
 	_p = other._p;
 	_u = other._u;
+	_val = other._val;
 }
 
 double InvCDF::draw(){
