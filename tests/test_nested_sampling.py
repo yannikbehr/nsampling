@@ -38,7 +38,7 @@ class NestedSamplingTestCase(unittest.TestCase):
         lh = partial(lighthouse, data=self.D)
         rs = ns.explore(vars=[x, y], initial_samples=100,
                         maximum_steps=1000,
-                        likelihood=lh, tolZ=1e-10)
+                        likelihood=lh, tolZ=1e-10, tolH=1e30)
         ep = rs.getexpt()
         ev = rs.getZ()
         h = rs.getH()
@@ -62,7 +62,51 @@ class NestedSamplingTestCase(unittest.TestCase):
         lh = partial(lighthouse, data=self.D)
         rs = ns.explore(vars=[x, y], initial_samples=100,
                         maximum_steps=1000,
-                        likelihood=lh, tolZ=1e-10)
+                        likelihood=lh, tolZ=1e-10, tolH=1e30)
+        ep = rs.getexpt()
+        ev = rs.getZ()
+        h = rs.getH()
+        var = rs.getvar()
+        m = rs.getmax()
+        self.assertAlmostEqual(ep[0], 1.248923, 6)
+        self.assertAlmostEqual(ep[1], 1.004467, 6)
+        self.assertAlmostEqual(np.sqrt(var[0]), 0.182316, 6)
+        self.assertAlmostEqual(np.sqrt(var[1]), 0.196733, 6)
+        self.assertAlmostEqual(m[0], 1.275347, 6)
+        self.assertAlmostEqual(m[1], 0.933178, 6)
+        self.assertAlmostEqual(m[2], -156.412012, 4)
+        self.assertAlmostEqual(ev[0], -160.192350, 4)
+        self.assertAlmostEqual(ev[1], 0.160726, 6)
+        self.assertAlmostEqual(h, 2.583279, 6)
+
+    def test_ns_with_lh_class(self):
+
+        class lh_class:
+
+            def __init__(self, data):
+                self.data = data
+
+            def likelihood(self, vals):
+                x = vals[0]
+                y = vals[1]
+                N = len(self.data)
+                logL = 0
+                if y <= 0.:
+                    raise Exception("y is: %f" % y)
+                for k in range(0, N):
+                    logL += np.log((y / np.pi) /
+                                   ((self.data[k] - x) *
+                                    (self.data[k] - x) + y * y))
+                return logL
+
+        lh = lh_class(self.D)
+        x = Uniform('x', -2., 2.)
+        y = Uniform('y', 0., 2.)
+        ns = NestedSampling(seed=42)
+        rs = ns.explore(vars=[x, y], initial_samples=100,
+                        maximum_steps=1000,
+                        likelihood=lh.likelihood, tolZ=-1,
+                        tolH=1e30)
         ep = rs.getexpt()
         ev = rs.getZ()
         h = rs.getH()
@@ -97,7 +141,7 @@ class NestedSamplingTestCase(unittest.TestCase):
         lh = partial(lighthouse, data=self.D)
         rs = ns.explore(vars=[icdfx, icdfy], initial_samples=100,
                         maximum_steps=1000,
-                        likelihood=lh, tolZ=1.e-4)
+                        likelihood=lh, tolZ=1.e-4, tolH=1e30)
         ep = rs.getexpt()
         ev = rs.getZ()
         h = rs.getH()
