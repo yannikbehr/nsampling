@@ -212,7 +212,7 @@ void NestedSampling::new_sample(Object *Obj, double logLstar,
 Result* NestedSampling::explore(std::vector<std::shared_ptr<Variable> > vars,
 		int initial_samples, int maximum_steps,
 		const std::function<double (std::vector<double>)> &likelihood,
-		int mcmc_steps, double stepscale, double tolZ){
+		int mcmc_steps, double stepscale, double tolZ, double tolH){
 	int i;
 	int copy;
 	int worst, best;
@@ -280,7 +280,7 @@ Result* NestedSampling::explore(std::vector<std::shared_ptr<Variable> > vars,
 #ifdef DEBUG
 		std::cout <<"Samples[nest]: " << *Samples[nest] <<std::endl;
 #endif
-		if(tolZ*exp(logZ) > exp(Obj[best]->_logWt)){
+		if(tolZ*exp(logZ) > exp(Obj[best]->_logWt) || nest > tolH*initial_samples*H){
 #ifdef DEBUG
 			std::cout << Obj[best]->_logWt << ", " << logZ << std::endl;
 #endif

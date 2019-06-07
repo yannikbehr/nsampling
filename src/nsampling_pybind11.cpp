@@ -94,6 +94,7 @@ PYBIND11_MODULE(nsampling, m){
                                 py::arg("likelihood"),
                                 py::arg("mcmc_steps") = 20,
                                 py::arg("stepscale") = 0.1,
-                                py::arg("tolZ") = 1e-3);
+                                py::arg("tolZ") = 1e-3,
+                                py::arg("tolH") = 3.);
 
 }

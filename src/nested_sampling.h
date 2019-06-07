@@ -114,9 +114,8 @@ public:
 	Result* explore(std::vector<std::shared_ptr<Variable> > vars, int initial_samples,
 			int maximum_steps,
 		       	const std::function<double (std::vector<double>)> &likelihood,
-			int mcmc_steps=20,
-			double stepscale=0.1,
-			double tolZ=1e-3);
+			int mcmc_steps=20, double stepscale=0.1, double tolZ=1e-3,
+                        double tolH=3.);
 };
 
 
