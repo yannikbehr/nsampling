@@ -23,6 +23,7 @@ public:
 	double _logWt;
 	double _logZ;
 	double _H;
+        int _sample_id;
 	std::vector<std::shared_ptr<Variable> > _vars;
 
 	Object(std::vector<std::shared_ptr<Variable> > vars);
@@ -41,6 +42,7 @@ public:
 	double get_logWt(){return _logWt;};
 	double get_logZ(){return _logZ;};
 	double get_H(){return _H;};
+        double get_id(){return _sample_id;};
 	std::vector<double> get_value();
 };
 
@@ -102,18 +104,19 @@ private:
 	int _nsteps;
 	// The scale factor for the initial MCMC step
 	double _stepscale;
+	int _sample_id = 0;
 public:
 	NestedSampling(int seed=-1);
 	~NestedSampling() {};
 
 	// MCMC step to find a new sample 
 	void new_sample(Object *Obj, double logLstar,
-			const std::function<double (std::vector<double>)> &likelihood);
+			const std::function<double (std::vector<double>, int sid)> &likelihood);
 
 	// Start the algorithm
 	Result* explore(std::vector<std::shared_ptr<Variable> > vars, int initial_samples,
 			int maximum_steps,
-		       	const std::function<double (std::vector<double>)> &likelihood,
+		       	const std::function<double (std::vector<double>, int sid)> &likelihood,
 			int mcmc_steps=20, double stepscale=0.1, double tolZ=1e-3,
                         double tolH=3.);
 };

@@ -22,6 +22,7 @@ Object::Object(Object& other){
 	_logWt = other._logWt;
 	_logZ = other._logZ;
 	_H = other._H;
+        _sample_id = other._sample_id;
 }
 
 
@@ -31,6 +32,7 @@ Object& Object::operator=(const Object& other){
 			_logWt = other._logWt;
 			_logZ = other._logZ;
 			_H = other._H;
+                        _sample_id = other._sample_id;
 			_vars.clear();
 			std::vector<std::shared_ptr<Variable> >::const_iterator itv;
 			for(itv=other._vars.begin(); itv !=other._vars.end(); itv++){
@@ -175,7 +177,7 @@ NestedSampling::NestedSampling(int seed){
 }
 
 void NestedSampling::new_sample(Object *Obj, double logLstar,
-				const std::function<double (std::vector<double>)> &likelihood){
+				const std::function<double (std::vector<double>, int sid)> &likelihood){
 	double step;
 	int m;
 	int accept = 0;
@@ -187,7 +189,9 @@ void NestedSampling::new_sample(Object *Obj, double logLstar,
 	step = _stepscale;
 	for(;m>0;m--){
 		try{
-			Try._logL = likelihood(Try.trial(step));
+			Try._sample_id = _sample_id++; 
+			Try._logL = likelihood(Try.trial(step), 
+					       Try._sample_id);
 
 			if(Try._logL > logLstar){
 				*Obj = Try;
@@ -211,7 +215,7 @@ void NestedSampling::new_sample(Object *Obj, double logLstar,
 
 Result* NestedSampling::explore(std::vector<std::shared_ptr<Variable> > vars,
 		int initial_samples, int maximum_steps,
-		const std::function<double (std::vector<double>)> &likelihood,
+		const std::function<double (std::vector<double>, int sid)> &likelihood,
 		int mcmc_steps, double stepscale, double tolZ, double tolH){
 	int i;
 	int copy;
@@ -245,7 +249,9 @@ Result* NestedSampling::explore(std::vector<std::shared_ptr<Variable> > vars,
 	for(i=0;i<initial_samples;i++){
 		Obj[i] = std::make_shared<Object>(vars);
 		try{
-			Obj[i]->_logL = likelihood(Obj[i]->draw());
+			Obj[i]->_sample_id = _sample_id++;
+			Obj[i]->_logL = likelihood(Obj[i]->draw(),
+					           Obj[i]->_sample_id);
 		}catch(SamplingException *e){
 			std::cout << "Callback during initialization failed" << std::endl;
 			i--;

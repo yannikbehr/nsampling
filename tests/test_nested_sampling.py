@@ -8,7 +8,7 @@ from nsampling import (NestedSampling, CUniform,
                        Uniform, InvCDF)
 
 
-def lighthouse(vals, data):
+def lighthouse(vals, sid, data):
     x = vals[0]
     y = vals[1]
     N = len(data)
@@ -86,7 +86,7 @@ class NestedSamplingTestCase(unittest.TestCase):
             def __init__(self, data):
                 self.data = data
 
-            def likelihood(self, vals):
+            def likelihood(self, vals, sid):
                 x = vals[0]
                 y = vals[1]
                 N = len(self.data)
@@ -122,6 +122,51 @@ class NestedSamplingTestCase(unittest.TestCase):
         self.assertAlmostEqual(ev[0], -160.192350, 4)
         self.assertAlmostEqual(ev[1], 0.160726, 6)
         self.assertAlmostEqual(h, 2.583279, 6)
+
+    def test_sample_id(self):
+
+        class lh_class:
+
+            def __init__(self, data):
+                self.data = data
+                self.samples = []
+
+            def get_samples(self):
+                return np.array(self.samples)
+
+            def likelihood(self, vals, sid):
+                x = vals[0]
+                y = vals[1]
+                N = len(self.data)
+                logL = 0
+                if y <= 0.:
+                    raise Exception("y is: %f" % y)
+                for k in range(0, N):
+                    logL += np.log((y / np.pi) /
+                                   ((self.data[k] - x) *
+                                    (self.data[k] - x) + y * y))
+                self.samples.append([x, y, logL, sid])
+                return logL
+
+        lh = lh_class(self.D)
+        x = Uniform('x', -2., 2.)
+        y = Uniform('y', 0., 2.)
+        ns = NestedSampling(seed=42)
+        rs = ns.explore(vars=[x, y], initial_samples=100,
+                        maximum_steps=1000,
+                        likelihood=lh.likelihood, tolZ=-1,
+                        tolH=1e30)
+        smp = rs.get_samples()
+        smp1 = lh.get_samples()
+        diffs = []
+        for _s in smp[0:10]:
+            sid = _s.get_id()
+            x, y = _s.get_value()
+            logL = _s.get_logL()
+            x1, y1, logL1, sid1 = smp1[smp1[:, 3] == sid][0]
+            diffs.append([x-x1, y-y1, logL-logL1])
+        diffs = np.array(diffs)
+        self.assertFalse(np.any(diffs > 0.))
 
     def test_ns_with_invcdf(self):
         """

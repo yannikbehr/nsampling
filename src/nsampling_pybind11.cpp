@@ -74,6 +74,7 @@ PYBIND11_MODULE(nsampling, m){
                 .def("get_value", &Object::get_value)
                 .def("get_logZ", &Object::get_logZ)
                 .def("get_H", &Object::get_H)
+                .def("get_id", &Object::get_id)
                 .def("assign", &Object::operator=, py::is_operator());
         py::class_<Result>(m, "Result")
                 .def(py::init<std::vector<std::shared_ptr<Object> >,double, double, int>())
