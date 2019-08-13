@@ -5,6 +5,7 @@
 #include "distributions.h"
 #include <exception>
 #include <memory>
+#include <functional>
 
 #define PLUS(x,y) (x > y ? x + log(1+std::exp(y-x)) : y + log(1+std::exp(x-y)))
 
