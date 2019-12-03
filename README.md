@@ -1,6 +1,6 @@
 ![](examples/lighthouse_problem.png)
 
-[![Build Status](https://travis-ci.com/yannikbehr/nsampling.svg?branch=master)](https://travis-ci.org/yannikbehr/nsampling)
+[![Build Status](https://travis-ci.com/yannikbehr/nsampling.svg?branch=master)](https://travis-ci.com/yannikbehr/nsampling)
 [![Coverage Status](https://img.shields.io/codecov/c/github/yannikbehr/nsampling/master.svg?style=flat-square)](https://codecov.io/gh/yannikbehr/nsampling)
 
 
